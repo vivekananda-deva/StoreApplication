@@ -1,0 +1,8 @@
+target/
+.settings/
+.project
+.classpath
+.idea/
+*.iml
+# photos uploaded from the admin page while running locally
+/uploads/

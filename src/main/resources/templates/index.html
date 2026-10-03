@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Padmavathi General Stores</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bs-primary:#26402F;--bs-primary-rgb:38,64,47;--bs-body-bg:#F7F1E4;--bs-body-color:#211E19;--bs-body-font-family:'IBM Plex Sans',sans-serif;--bs-border-color:#D9CFB4;--bs-border-radius:.25rem;--bs-link-color:#26402F;--tm:#C77A2E;--dim:#EFE7D3}
+h1,h2,h3,.brand{font-family:'Fraunces',serif}
+.btn-primary{--bs-btn-bg:#26402F;--bs-btn-border-color:#26402F;--bs-btn-hover-bg:#1C3024;--bs-btn-hover-border-color:#1C3024;--bs-btn-active-bg:#1C3024;--bs-btn-active-border-color:#1C3024;--bs-btn-disabled-bg:#26402F;--bs-btn-disabled-border-color:#26402F}
+.btn-outline-primary{--bs-btn-color:#26402F;--bs-btn-border-color:#26402F;--bs-btn-hover-bg:#26402F;--bs-btn-hover-border-color:#26402F;--bs-btn-active-bg:#26402F}
+.btn-warning{--bs-btn-bg:#C77A2E;--bs-btn-border-color:#C77A2E;--bs-btn-color:#fff;--bs-btn-hover-bg:#B06A24;--bs-btn-hover-border-color:#B06A24;--bs-btn-hover-color:#fff;--bs-btn-active-bg:#B06A24;--bs-btn-active-color:#fff}
+.btn:focus-visible{outline:2px solid var(--tm);outline-offset:2px;box-shadow:none}
+.form-control:focus,.form-select:focus{border-color:#26402F;box-shadow:0 0 0 .2rem rgba(199,122,46,.35)}
+.navbar{background:#26402F;position:sticky;top:0;z-index:1020}
+.sign{background:#26402F;color:#F7F1E4;position:relative;padding:2.25rem 1.5rem}
+.sign::before{content:"";position:absolute;inset:8px;border:2px solid rgba(199,122,46,.7);pointer-events:none}
+.sign h1{font-weight:800;font-size:clamp(1.9rem,5vw,3rem);line-height:1.1}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;display:flex;gap:.6rem;align-items:center;padding:.3rem 0}
+.steps li::before{content:counter(s);flex:none;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--tm);color:#fff;display:grid;place-items:center;font-size:.78rem;font-weight:600}
+.card{background:#FFFDF7}
+.pimg{position:relative;flex:none;width:96px;height:96px;background:#fff;border:1px solid var(--bs-border-color);display:grid;place-items:center;font:600 2rem 'Fraunces',serif;color:rgba(38,64,47,.3);overflow:hidden}
+.pimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.chip{border-radius:2rem;border-width:2px;font-weight:500}
+.chip.on{background:#E3EBDD}
+.tag{background:var(--tm);color:#fff;font-weight:600;padding:.2rem .6rem .2rem 1.05rem;clip-path:polygon(.6rem 0,100% 0,100% 100%,.6rem 100%,0 50%)}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+</style>
+</head>
+<body>
+
+<nav class="navbar py-2"><div class="container"><div class="row align-items-center g-2 w-100 mx-auto">
+  <div class="col"><a class="brand navbar-brand text-white fw-bold m-0" href="/">Padmavathi <small class="fw-normal fs-6 opacity-75">General Stores</small></a></div>
+  <div class="col-12 col-md-5 order-3 order-md-2"><input id="q" type="search" class="form-control" placeholder="Search products" aria-label="Search products"></div>
+  <div class="col-auto order-2 order-md-3"><button class="btn btn-warning" data-bs-toggle="offcanvas" data-bs-target="#cart">Cart <span id="count" class="badge text-bg-light">0</span></button></div>
+</div></div></nav>
+
+<header class="container mt-3"><div class="sign"><div class="row g-4 align-items-center">
+  <div class="col-md-7">
+    <h1>Order from home.<br>Pick up at the shop.</h1>
+    <p class="mb-3">Add what you need, send your order, and we'll call to confirm. Your items are packed and waiting when you arrive.</p>
+    <a id="callBtn" class="btn btn-warning d-none" href="#">Call the shop</a>
+    <a id="waBtn" class="btn btn-outline-light d-none" target="_blank" rel="noopener" href="#">WhatsApp us</a>
+  </div>
+  <div class="col-md-5"><ol class="steps"><li>Add items to your cart</li><li>Send your order</li><li>We call you to confirm</li><li>Collect it at the shop</li></ol></div>
+</div></div></header>
+
+<main class="container my-4">
+  <div id="cats" class="d-flex gap-2 overflow-auto pb-2 mb-3"></div>
+  <div id="grid" class="row row-cols-1 row-cols-lg-2 g-3"><p class="text-muted">Loading products…</p></div>
+  <p id="empty" class="text-center text-muted py-5 d-none"></p>
+</main>
+
+<footer class="py-4 text-center small" style="background:var(--dim)">Padmavathi General Stores. Pickup only, no delivery.</footer>
+
+<div class="offcanvas offcanvas-end" id="cart" tabindex="-1">
+  <div class="offcanvas-header"><h2 class="h5 mb-0">Your cart</h2><button class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button></div>
+  <div class="offcanvas-body pt-0" id="cartBody"></div>
+  <div class="p-3 border-top">
+    <div class="d-flex justify-content-between fw-semibold mb-2"><span>Total</span><span id="total">₹0</span></div>
+    <button id="checkoutBtn" class="btn btn-primary w-100" disabled>Checkout</button>
+  </div>
+</div>
+
+<div class="modal fade" id="checkout" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+  <form id="form" novalidate>
+    <div class="modal-header"><h2 class="h5 mb-0">Your details</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+    <div class="modal-body">
+      <div class="mb-3"><label class="form-label" for="name">Name</label><input id="name" class="form-control" maxlength="100" autocomplete="name" required></div>
+      <div class="mb-3"><label class="form-label" for="phone">Phone number</label><input id="phone" class="form-control" type="tel" inputmode="numeric" placeholder="10 digits" autocomplete="tel" required></div>
+      <div class="mb-3"><label class="form-label" for="email">Email (optional)</label><input id="email" class="form-control" type="email" autocomplete="email"></div>
+      <div class="mb-3"><label class="form-label" for="pickup">When will you collect it?</label>
+        <select id="pickup" class="form-select"><option>As soon as possible</option><option>Today evening</option><option>Tomorrow morning</option><option>Tomorrow evening</option></select></div>
+      <div id="err" class="alert alert-danger py-2 mb-0 d-none" role="alert"></div>
+    </div>
+    <div class="modal-footer"><button id="send" class="btn btn-primary w-100">Send order</button></div>
+  </form>
+  <div id="done" class="modal-body text-center p-4 d-none">
+    <h2 class="h4">Order <span id="doneNo"></span> received</h2>
+    <p id="doneMsg"></p>
+    <a id="doneWa" class="btn btn-warning w-100 mb-2" target="_blank" rel="noopener">Send it on WhatsApp too</a>
+    <button class="btn btn-outline-primary w-100" data-bs-dismiss="modal">Keep shopping</button>
+  </div>
+</div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="none">
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr = n => '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits: 2});
+let products = [], groups = [], gOf = {}, sel = {}, cats = [], cat = 0, q = '', wa = '', cart = {}, goCheckout = false;
+try { cart = JSON.parse(localStorage.getItem('ps.cart')) || {}; } catch (e) {}
+const save = () => { try { localStorage.setItem('ps.cart', JSON.stringify(cart)); } catch (e) {} };
+const get = async u => { const r = await fetch(u); if (!r.ok) throw new Error(r.status); return r.json(); };
+
+const stepper = (id, n, wide) => `<div class="btn-group ${wide ? 'w-100' : 'btn-group-sm'}"><button class="btn btn-outline-primary" data-dec="${id}" aria-label="Remove one">−</button><span class="btn btn-outline-primary disabled">${n}</span><button class="btn btn-outline-primary" data-inc="${id}" aria-label="Add one">+</button></div>`;
+// Products saved with the size inside the name (e.g. "Black Pepper 100g") are split into name + size.
+const SIZE_RE = /\s+(\d+(?:\.\d+)?\s*(?:kg|gms|gm|g|ml|ltr|litre|l|pcs|pc))\s*$/i;
+const norm = p => { const m = !p.size && p.name ? p.name.match(SIZE_RE) : null; return m && m.index > 0 ? {...p, name: p.name.slice(0, m.index).trim(), size: m[1].replace(/\s+/g, '')} : p; };
+const label = p => p.name + (p.size ? ' ' + p.size : '');
+
+// Each size is its own product row; rows with the same name and category show as one card with size chips.
+function group() {
+  const m = {}; groups = []; gOf = {};
+  [...products].sort((a, b) => a.name.localeCompare(b.name) || a.price - b.price).forEach(p => {
+    const k = (p.category?.id || 0) + '|' + p.name.trim().toLowerCase();
+    if (!m[k]) { m[k] = {id: groups.length, name: p.name, description: p.description, category: p.category, variants: []}; groups.push(m[k]); }
+    m[k].variants.push(p); gOf[p.id] = m[k];
+    if (!m[k].description) m[k].description = p.description;
+  });
+}
+
+function card(g) {
+  const v = g.variants.find(x => x.id === sel[g.id]) || g.variants[0], n = cart[v.id] || 0;
+  const img = v.imageUrl || g.variants.find(x => x.imageUrl)?.imageUrl;
+  return `<div class="col" data-card="${g.id}"><div class="card h-100 p-3">
+    <div class="d-flex gap-3">
+      <div class="pimg"><span>${esc(g.name[0])}</span>${img ? `<img src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</div>
+      <div class="flex-grow-1" style="min-width:0"><div class="small text-muted">${esc(g.category?.name)}</div><h3 class="h6 mb-2">${esc(g.name)}</h3><span class="tag">${inr(v.price)}</span>
+        ${g.description ? `<p class="small text-muted mt-2 mb-0 clamp">${esc(g.description)}</p>` : ''}</div>
+    </div>
+    <div class="mt-3">${n ? stepper(v.id, n, true) : `<button class="btn btn-outline-primary w-100" data-add="${v.id}">Add to cart</button>`}</div>
+    ${g.variants.some(x => x.size) ? `<div class="d-flex flex-wrap gap-2 mt-3">${g.variants.map(x => `<button class="btn btn-sm btn-outline-primary chip ${x.id === v.id ? 'on' : ''}" data-var="${g.id}:${x.id}" aria-pressed="${x.id === v.id}">${esc(x.size || 'Regular')}</button>`).join('')}</div>` : ''}
+  </div></div>`;
+}
+
+function renderCats() {
+  const shown = cats.filter(c => products.some(p => p.category?.id === c.id));
+  $('cats').innerHTML = [{id: 0, name: 'All'}, ...shown].map(c => `<button class="btn btn-sm text-nowrap ${c.id === cat ? 'btn-primary' : 'btn-outline-primary'}" data-cat="${c.id}">${esc(c.name)}</button>`).join('');
+}
+
+function renderGrid() {
+  const t = q.trim().toLowerCase();
+  // While searching, look across every category, not just the selected one.
+  const list = groups.filter(g => (!t ? !cat || g.category?.id === cat : (g.name + ' ' + (g.category?.name || '') + ' ' + (g.description || '') + ' ' + g.variants.map(v => v.size || '').join(' ')).toLowerCase().includes(t)));
+  $('grid').innerHTML = list.map(card).join('');
+  $('empty').classList.toggle('d-none', !!list.length);
+  $('empty').textContent = products.length ? 'Nothing matches that search.' : 'No products yet. Please check back soon.';
+}
+
+const items = () => Object.keys(cart).map(id => ({p: products.find(p => p.id == id), n: cart[id]})).filter(x => x.p);
+
+function renderCart() {
+  const it = items(), cnt = it.reduce((a, x) => a + x.n, 0), tot = it.reduce((a, x) => a + x.n * x.p.price, 0);
+  $('count').textContent = cnt; $('total').textContent = inr(tot); $('checkoutBtn').disabled = !cnt;
+  $('cartBody').innerHTML = it.length ? it.map(({p, n}) => `<div class="d-flex justify-content-between align-items-center border-bottom py-2 gap-2">
+    <div><div class="fw-semibold">${esc(label(p))}</div><div class="small text-muted">${inr(p.price)} each</div></div>
+    <div class="text-end">${stepper(p.id, n)}<div class="small fw-semibold mt-1">${inr(p.price * n)}</div></div></div>`).join('')
+    : '<p class="text-muted pt-3">Your cart is empty. Add something from the shelves.</p>';
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-add],[data-inc],[data-dec],[data-cat],[data-var]');
+  if (!b) return;
+  const d = b.dataset, inCard = !!b.closest('[data-card]');
+  if (d.cat !== undefined) { cat = +d.cat; renderCats(); renderGrid(); return; }
+  let id, focus;
+  if (d.var) { const [gi, pi] = d.var.split(':').map(Number); sel[gi] = pi; id = pi; focus = `[data-var="${d.var}"]`; }
+  else {
+    id = d.add || d.inc || d.dec; const n = cart[id] || 0;
+    if (d.dec) { n > 1 ? cart[id] = n - 1 : delete cart[id]; } else cart[id] = n + 1;
+    save(); renderCart(); focus = `[data-inc="${id}"],[data-add="${id}"]`;
+  }
+  const g = gOf[id], col = g && document.querySelector(`[data-card="${g.id}"]`);
+  if (col) { col.outerHTML = card(g); if (inCard) document.querySelector(focus)?.focus(); }
+});
+
+$('q').oninput = e => {
+  q = e.target.value;
+  if (q.trim() && cat) { cat = 0; renderCats(); } // a fresh search looks at every category
+  renderGrid();
+};
+
+$('checkoutBtn').onclick = () => { goCheckout = true; bootstrap.Offcanvas.getOrCreateInstance($('cart')).hide(); };
+$('cart').addEventListener('hidden.bs.offcanvas', () => { if (goCheckout) { goCheckout = false; bootstrap.Modal.getOrCreateInstance($('checkout')).show(); } });
+$('checkout').addEventListener('hidden.bs.modal', () => { $('form').classList.remove('d-none'); $('done').classList.add('d-none'); $('err').classList.add('d-none'); });
+
+$('form').onsubmit = async e => {
+  e.preventDefault();
+  const err = $('err'), it = items(), name = $('name').value.trim(), pickup = $('pickup').value;
+  let ph = $('phone').value.replace(/\D/g, ''); if (ph.length > 10) ph = ph.slice(-10);
+  err.classList.add('d-none');
+  if (!name || ph.length !== 10) { err.textContent = 'Enter your name and a 10-digit phone number.'; err.classList.remove('d-none'); return; }
+  $('send').disabled = true;
+  try {
+    // The backend requires an address; this is a pickup-only shop, so it is a fixed note.
+    const r = await fetch('/api/orders', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({
+      customerName: name, phone: ph, email: $('email').value.trim() || null, address: 'Store pickup',
+      items: it.map(x => ({productId: x.p.id, quantity: x.n}))})});
+    const o = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(o.message || 'Could not place the order. Please try again.');
+    const no = '#' + String(o.id).padStart(4, '0');
+    const lines = it.map(x => `- ${label(x.p)} x ${x.n}: ${inr(x.p.price * x.n)}`).join('\n');
+    const msg = `New order ${no}\nName: ${name}\nPhone: ${ph}\nPickup: ${pickup}\n\n${lines}\n\nTotal: ${inr(o.totalAmount)}`;
+    $('doneNo').textContent = no;
+    $('doneMsg').textContent = `We'll call you on ${ph} to confirm. Pickup: ${pickup.toLowerCase()}.`;
+    $('doneWa').classList.toggle('d-none', !wa); $('doneWa').href = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+    cart = {}; save(); renderGrid(); renderCart();
+    $('form').classList.add('d-none'); $('done').classList.remove('d-none');
+  } catch (x) { err.textContent = x.message; err.classList.remove('d-none'); }
+  finally { $('send').disabled = false; }
+};
+
+(async () => {
+  renderCart();
+  try { [products, cats] = await Promise.all([get('/api/products'), get('/api/categories')]); }
+  catch (e) { $('grid').innerHTML = '<div class="col-12"><div class="alert alert-danger">Could not load products. Refresh the page to try again.</div></div>'; return; }
+  try {
+    wa = (await get('/api/shop/contact')).whatsappNumber || '';
+    if (wa) { $('callBtn').href = 'tel:+' + wa; $('waBtn').href = 'https://wa.me/' + wa; $('callBtn').classList.remove('d-none'); $('waBtn').classList.remove('d-none'); }
+  } catch (e) {}
+  Object.keys(cart).forEach(id => { if (!products.some(p => p.id == id)) delete cart[id]; });
+  products = products.map(norm).filter(p => p.price > 0); // unpriced products stay hidden
+  group();
+  Object.keys(cart).forEach(id => { if (gOf[id]) sel[gOf[id].id] = +id; });
+  renderCats(); renderGrid(); renderCart();
+})();
+</script>
+</body>
+</html>

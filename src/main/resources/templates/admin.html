@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Admin - Padmavathi General Stores</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+        <style>
+            :root{
+            --bs-primary:#26402F;
+            --bs-primary-rgb:38,64,47;
+            --bs-body-bg:#F7F1E4;
+            --bs-body-color:#211E19;
+            --bs-body-font-family:'IBM Plex Sans',sans-serif;
+            --bs-border-color:#D9CFB4;
+            --bs-border-radius:.25rem;
+            --bs-link-color:#26402F;
+            --tm:#C77A2E
+            }
+            h1,h2,.brand{
+            font-family:'Fraunces',serif
+            }
+            .btn-primary{
+            --bs-btn-bg:#26402F;
+            --bs-btn-border-color:#26402F;
+            --bs-btn-hover-bg:#1C3024;
+            --bs-btn-hover-border-color:#1C3024;
+            --bs-btn-active-bg:#1C3024;
+            --bs-btn-active-border-color:#1C3024;
+            --bs-btn-disabled-bg:#26402F;
+            --bs-btn-disabled-border-color:#26402F
+            }
+            .btn-outline-primary{
+            --bs-btn-color:#26402F;
+            --bs-btn-border-color:#26402F;
+            --bs-btn-hover-bg:#26402F;
+            --bs-btn-hover-border-color:#26402F;
+            --bs-btn-active-bg:#26402F
+            }
+            .btn:focus-visible{
+            outline:2px solid var(--tm);
+            outline-offset:2px;
+            box-shadow:none
+            }
+            .form-control:focus,.form-select:focus{
+            border-color:#26402F;
+            box-shadow:0 0 0 .2rem rgba(199,122,46,.35)
+            }
+            .bar{
+            background:#26402F;
+            color:#F7F1E4
+            }
+            .bar .nav-link{
+            color:#D9E2D6;
+            border-radius:0;
+            border-bottom:3px solid transparent
+            }
+            .bar .nav-link.active{
+            background:none;
+            color:#fff;
+            border-bottom-color:var(--tm)
+            }
+            .panel{
+            background:#FFFDF7;
+            border:1px solid var(--bs-border-color)
+            }
+            .st{
+            font-weight:600;
+            border-width:2px
+            }
+            .st-PENDING{
+            border-color:#C77A2E;
+            color:#8A4F16
+            }
+            .st-CONFIRMED{
+            border-color:#3A6B8A;
+            color:#3A6B8A
+            }
+            .st-PROCESSING{
+            border-color:#2F7F79;
+            color:#2F7F79
+            }
+            .st-READY{
+            border-color:#26402F;
+            color:#26402F
+            }
+            .st-COMPLETED{
+            border-color:#6B6152;
+            color:#6B6152
+            }
+            .st-CANCELLED{
+            border-color:#8C3B2B;
+            color:#8C3B2B
+            }
+        </style>
+    </head>
+    <body>
+        
+        <section id="login" class="min-vh-100 d-flex align-items-center justify-content-center p-3">
+            <form id="lf" class="panel p-4 w-100" style="max-width:360px">
+                <h1 class="h4 mb-1">Padmavathi admin</h1>
+                <p class="text-muted small">Sign in to manage orders and products.</p>
+                <label class="form-label" for="u">Username</label>
+                <input id="u" class="form-control mb-3" autocomplete="username" required>
+                <label class="form-label" for="p">Password</label>
+                <input id="p" class="form-control mb-3" type="password" autocomplete="current-password" required>
+                <div id="lerr" class="alert alert-danger py-2 d-none" role="alert"></div>
+                <button class="btn btn-primary w-100">Sign in</button>
+            </form>
+        </section>
+        
+        <div id="app" class="d-none">
+            <header class="bar"><div class="container d-flex flex-wrap align-items-center gap-3 pt-2">
+                <span class="brand fw-bold fs-5 pb-2">Padmavathi admin</span>
+                <ul class="nav ms-md-3" id="tabs">
+                    <li class="nav-item"><button class="nav-link active" data-tab="orders">Orders <span id="pend" class="badge text-bg-warning">0</span></button></li>
+                    <li class="nav-item"><button class="nav-link" data-tab="products">Products</button></li>
+                    <li class="nav-item"><button class="nav-link" data-tab="categories">Categories</button></li>
+                </ul>
+                <div class="ms-auto pb-2">
+                    <a class="btn btn-sm btn-outline-light" href="/" target="_blank">View shop</a> 
+                    <button id="out" class="btn btn-sm btn-outline-light">Log out</button>
+                </div>
+                </div>
+            </header>
+        
+            <main class="container py-4">
+                <div id="msg" class="alert alert-danger py-2 d-none" role="alert"></div>
+                
+                <section id="t-orders">
+                    <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+                        <h2 class="h5 mb-0">Orders</h2>
+                        <div class="d-flex gap-2">
+                            <select id="filter" class="form-select form-select-sm w-auto"></select>
+                            <button id="refresh" class="btn btn-sm btn-outline-primary">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="panel table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Order</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Placed</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ob"></tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <section id="t-products" class="d-none">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h2 class="h5 mb-0">Products</h2>
+                        <button id="addP" class="btn btn-sm btn-primary">Add product</button>
+                    </div>
+                    <p id="np" class="small text-muted mb-2"></p>
+                    <div class="panel table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="pb"></tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <section id="t-categories" class="d-none">
+                  <h2 class="h5">Categories</h2>
+                  <form id="cf" class="d-flex gap-2 mb-3" style="max-width:420px"><input id="cn" class="form-control" placeholder="New category name" aria-label="New category name" required><button class="btn btn-primary">Add</button></form>
+                  <div class="panel"><ul id="cb" class="list-group list-group-flush"></ul></div>
+                </section>
+            </main>
+        </div>
+        
+        <div class="modal fade" id="pm" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <form id="pf" class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="pmTitle" class="h5 mb-0">Product</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="pid">
+                        <div class="row g-2 mb-3">
+                            <div class="col-8">
+                                <label class="form-label" for="pn">Name</label>
+                                <input id="pn" class="form-control" required>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label" for="psz">Size</label>
+                                <input id="psz" class="form-control" placeholder="e.g. 100g" maxlength="50">
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-5">
+                                <label class="form-label" for="pp">Price (₹)</label>
+                                <input id="pp" class="form-control" type="number" min="0.01" step="0.01" required>
+                            </div>
+                            <div class="col-7">
+                                <label class="form-label" for="pc">Category</label>
+                                <select id="pc" class="form-select" required></select>
+                            </div>
+                        </div>
+                        <label class="form-label" for="pfile">Photo</label>
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <img id="pv" alt="" class="border d-none" style="width:72px;height:54px;object-fit:cover">
+                            <div>
+                                <input id="pfile" type="file" accept="image/*" class="form-control form-control-sm">
+                                <button type="button" id="rmImg" class="btn btn-link btn-sm p-0 mt-1 d-none">Remove photo</button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="pi">
+                        <label class="form-label" for="pd">Description (optional)</label>
+                        <textarea id="pd" class="form-control" rows="2" maxlength="1000"></textarea>
+                        <div id="perr" class="alert alert-danger py-2 mt-3 mb-0 d-none" role="alert"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Cancel</button>
+                        <button class="btn btn-primary">Save product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script th:inline="none">
+        	const $ = id => document.getElementById(id);
+        	const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        	const inr = n => '₹' + Number(n).toLocaleString('en-IN', {maximumFractionDigits: 2});
+        
+        	// Products saved with the size inside the name (e.g. "Black Pepper 100g") are split into name + size.
+        
+            const SIZE_RE = /\s+(\d+(?:\.\d+)?\s*(?:kg|gms|gm|g|ml|ltr|litre|l|pcs|pc))\s*$/i;
+            const norm = p => { 
+            	const m = !p.size && p.name ? p.name.match(SIZE_RE) : null; 
+            	return m && m.index > 0 ? {
+            		...p, name: p.name.slice(0, m.index).trim(), size: m[1].replace(/\s+/g, '')
+            		} : p; 
+            	};
+            const no = id => '#' + String(id).padStart(4, '0');
+            const ST = {
+            		PENDING: 'Awaiting call', 
+            		CONFIRMED: 'Confirmed', 
+            		PROCESSING: 'Packing', 
+            		READY: 'Ready for pickup', 
+            		COMPLETED: 'Completed', 
+            		CANCELLED: 'Cancelled'
+            		};
+            let tok = null, orders = [], prods = [], cats = [];
+            try { 
+            	tok = sessionStorage.getItem('ps.tok'); 
+            	} catch (e) {
+            		
+            	}
+            
+            function show(id, ok) {
+            	$(id).classList.toggle('d-none', !ok); 
+            	}
+            function flash(m) { 
+            	$('msg').textContent = m; 
+            	show('msg', !!m); 
+            	}
+            function logout(m) {
+                tok = null; 
+                try { 
+                    sessionStorage.removeItem('ps.tok'); 
+                    } catch (e) {
+                      
+                    }
+                show('app', false); 
+                show('login', true); 
+                $('lerr').textContent = m || ''; 
+                show('lerr', !!m);
+				}
+            
+            async function api(path, o = {}) {
+            	
+                const r = await fetch(path, {...o, headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + tok}});
+                
+                if (r.status === 401 || r.status === 403) { 
+                	logout('Your session ended. Please sign in again.'); 
+                	throw new Error('auth'); 
+                	}
+                const t = await r.text(); 
+                let d = null; 
+                try { 
+                	d = t ? JSON.parse(t) : null; 
+                	} catch (e) {}
+                	
+                if (!r.ok) throw new Error(d?.message || 'Something went wrong. Please try again.');
+                
+                return d;
+            }
+            const fail = x => { 
+            	if (x.message !== 'auth') flash(x.message); 
+            	};
+            
+            $('lf').onsubmit = async e => {
+              	e.preventDefault();
+              	try {
+                    const r = await fetch('/api/auth/login', {
+                    	method: 'POST', 
+                    	headers: {'Content-Type': 'application/json'}, 
+                    	body: JSON.stringify({username: $('u').value.trim(), password: $('p').value})
+                    	});
+                    if (!r.ok) throw 0;
+                    tok = (await r.json()).token; 
+                    try { 
+                    	sessionStorage.setItem('ps.tok', tok); 
+                    	} catch (e) {}
+                    $('p').value = ''; 
+                    start();
+                  } catch (x) { 
+                	  $('lerr').textContent = 'Wrong username or password.'; 
+                	  show('lerr', true); 
+                	  }
+                };
+                
+            $('out').onclick = () => logout();
+            
+            function start() { 
+            	show('login', false); 
+            	show('app', true); 
+            	load(); 
+            	}
+            async function load() {
+                flash('');
+                try { 
+                	[cats, 
+                		prods, 
+                		orders
+                		] = await Promise.all([
+                			api('/api/categories'), 
+                			api('/api/products'), 
+                			api('/api/orders')
+                			]); 
+                	}
+                catch (x) { 
+                	return fail(x); 
+                	}
+                prods = prods.map(norm);
+                renderOrders(); 
+                renderProducts(); 
+                renderCats();
+            }
+            
+            document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+                document.querySelectorAll('[data-tab]').forEach(x => x.classList.toggle('active', x === b));
+                ['orders', 'products', 'categories'].forEach(t => show('t-' + t, t === b.dataset.tab));
+            });
+            
+            // ---- Orders ----
+            $('filter').innerHTML = '<option value="">All orders</option>' + Object.entries(ST).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+            $('filter').onchange = () => renderOrders();
+            $('refresh').onclick = load;
+            function renderOrders() {
+                const f = $('filter').value, list = orders.filter(o => !f || o.status === f).sort((a, b) => b.id - a.id);
+                $('pend').textContent = orders.filter(o => o.status === 'PENDING').length;
+                $('ob').innerHTML = list.map(o => `<tr>
+                <td class="fw-semibold">${no(o.id)}</td>
+                <td>${esc(o.customer.name)}<br><a class="small" href="tel:${esc(o.customer.phone)}">${esc(o.customer.phone)}</a></td>
+                <td class="small">${o.items.map(i => `${esc(i.productName)} × ${i.quantity}`).join('<br>')}</td>
+                <td>${inr(o.totalAmount)}</td>
+                <td class="small text-nowrap">${new Date(o.orderDate).toLocaleString('en-IN', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'})}</td>
+                <td><select class="form-select form-select-sm st st-${o.status}" data-id="${o.id}" aria-label="Status of order ${no(o.id)}">${Object.entries(ST).map(([k, v]) => `<option value="${k}"${k === o.status ? ' selected' : ''}>${v}</option>`).join('')}</select></td></tr>`).join('')
+                || '<tr><td colspan="6" class="text-center text-muted py-4">No orders to show.</td></tr>';
+				}
+            $('ob').onchange = async e => {
+                const s = e.target; if (!s.dataset.id) return;
+                try { 
+                	await api(`/api/orders/${
+                		s.dataset.id
+                		}/status?status=${
+                			s.value
+                			}`, {
+                				method: 'PATCH'
+                				}); 
+                	orders.find(o => o.id == s.dataset.id).status = s.value; renderOrders(); 
+                	}catch (x) { 
+                		fail(x); 
+                		load(); 
+                		}
+                	};
+            
+            // ---- Products ----
+            function renderProducts() {
+                // Banner: count of products that are hidden from the shop because they have no price
+                const unpriced = prods.filter(p => !(p.price > 0)).length;
+                $('np').textContent = unpriced
+                    ? `${unpriced} products have no price yet and are hidden from the shop.`
+                    : '';
+            
+                // Sort by category name, then product name, then price
+                const sorted = [...prods].sort((a, b) =>
+                    (a.category?.name || '').localeCompare(b.category?.name || '') ||
+                    a.name.localeCompare(b.name) ||
+                    a.price - b.price
+                );
+            
+                const rowHtml = (p) => `
+                    <tr>
+                        <td class="d-flex align-items-center gap-2">
+                            ${p.imageUrl
+                                ? `<img src="${esc(p.imageUrl)}" alt="" width="48" height="36" style="object-fit:cover">`
+                                : ''}
+                            <div>
+                                ${esc(p.name)} <strong>${esc(p.size)}</strong>
+                                <div class="small text-muted">${esc(p.description)}</div>
+                            </div>
+                        </td>
+                        <td>${esc(p.category?.name || '-')}</td>
+                        <td>
+                            ${p.price > 0
+                                ? inr(p.price)
+                                : '<span class="badge text-bg-warning">Needs price</span>'}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <button class="btn btn-sm btn-outline-primary" data-edit="${p.id}">Edit</button>
+                            <button class="btn btn-sm btn-outline-primary" data-size="${p.id}">Add size</button>
+                            <button class="btn btn-sm btn-outline-danger" data-delp="${p.id}">Delete</button>
+                        </td>
+                    </tr>`;
+            
+                $('pb').innerHTML = sorted.map(rowHtml).join('')
+                    || '<tr><td colspan="4" class="text-center text-muted py-4">No products yet. Add your first one.</td></tr>';
+            }            
+            function setImg(u) { 
+            	$('pi').value = u || ''; 
+            	$('pv').src = u || ''; 
+            	show('pv', !!u); 
+            	show('rmImg', !!u); 
+            	}
+            async function shrink(file, max = 900) {
+              const bm = await createImageBitmap(file), k = Math.min(1, max / Math.max(bm.width, bm.height));
+              const c = document.createElement('canvas'); c.width = Math.round(bm.width * k); c.height = Math.round(bm.height * k);
+              c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height);
+              return new Promise(r => c.toBlob(r, 'image/jpeg', .82));
+            }
+            $('pfile').onchange = async e => {
+              const f = e.target.files[0]; if (!f) return; show('perr', false);
+              try {
+                const fd = new FormData(); fd.append('file', await shrink(f), 'photo.jpg');
+                const r = await fetch('/api/uploads', {method: 'POST', headers: {Authorization: 'Bearer ' + tok}, body: fd});
+                if (r.status === 401 || r.status === 403) return logout('Your session ended. Please sign in again.');
+                const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.message || 'Upload failed. Please try again.');
+                setImg(d.url);
+              } catch (x) { $('perr').textContent = x.message || 'Could not read that photo.'; show('perr', true); }
+              e.target.value = '';
+            };
+            $('rmImg').onclick = () => setImg('');
+            function openProduct(p, asNew) {
+              if (!cats.length) return flash('Add a category first, then add products to it.');
+              $('pmTitle').textContent = asNew ? 'Add another size' : p ? 'Edit product' : 'Add product'; show('perr', false);
+              $('pc').innerHTML = cats.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+              $('pid').value = asNew ? '' : p?.id || ''; $('pn').value = p?.name || ''; $('psz').value = asNew ? '' : p?.size || ''; $('pp').value = asNew ? '' : p?.price ?? ''; setImg(p?.imageUrl); $('pd').value = p?.description || '';
+              if (p?.category) $('pc').value = p.category.id;
+              bootstrap.Modal.getOrCreateInstance($('pm')).show();
+            }
+            $('addP').onclick = () => openProduct();
+            $('pb').onclick = async e => {
+              const b = e.target.closest('button'); if (!b) return;
+              if (b.dataset.edit) openProduct(prods.find(p => p.id == b.dataset.edit));
+              if (b.dataset.size) openProduct(prods.find(p => p.id == b.dataset.size), true);
+              if (b.dataset.delp && confirm('Delete this product?')) {
+                try { await api('/api/products/' + b.dataset.delp, {method: 'DELETE'}); load(); }
+                catch (x) { fail(x); }
+              }
+            };
+            $('pf').onsubmit = async e => {
+              e.preventDefault(); const id = $('pid').value;
+              const body = {name: $('pn').value.trim(), size: $('psz').value.trim() || null, description: $('pd').value.trim() || null, price: parseFloat($('pp').value), imageUrl: $('pi').value.trim() || null, category: {id: +$('pc').value}};
+              try { await api('/api/products' + (id ? '/' + id : ''), {method: id ? 'PUT' : 'POST', body: JSON.stringify(body)}); bootstrap.Modal.getInstance($('pm')).hide(); load(); }
+              catch (x) { if (x.message !== 'auth') { $('perr').textContent = x.message; show('perr', true); } }
+            };
+            
+            // ---- Categories ----
+            function renderCats() {
+              $('cb').innerHTML = cats.map(c => `<li class="list-group-item d-flex justify-content-between align-items-center gap-2 bg-transparent">
+                <span>${esc(c.name)} <span class="text-muted small">(${prods.filter(p => p.category?.id === c.id).length} products)</span></span>
+                <span class="text-nowrap"><button class="btn btn-sm btn-outline-primary" data-ren="${c.id}">Rename</button> <button class="btn btn-sm btn-outline-danger" data-delc="${c.id}">Delete</button></span></li>`).join('')
+                || '<li class="list-group-item text-muted bg-transparent">No categories yet.</li>';
+            }
+            $('cf').onsubmit = async e => {
+              e.preventDefault();
+              try { await api('/api/categories', {method: 'POST', body: JSON.stringify({name: $('cn').value.trim()})}); $('cn').value = ''; load(); }
+              catch (x) { fail(x); }
+            };
+            $('cb').onclick = async e => {
+              const b = e.target.closest('button'); if (!b) return;
+              try {
+                if (b.dataset.ren) {
+                  const c = cats.find(c => c.id == b.dataset.ren), name = prompt('New name for this category:', c.name);
+                  if (name && name.trim() && name.trim() !== c.name) { await api('/api/categories/' + c.id, {method: 'PUT', body: JSON.stringify({name: name.trim()})}); load(); }
+                } else if (b.dataset.delc && confirm('Delete this category?')) {
+                  try { await api('/api/categories/' + b.dataset.delc, {method: 'DELETE'}); load(); }
+                  catch (x) { if (x.message !== 'auth') flash('Could not delete it. Move or delete the products in this category first.'); }
+                }
+              } catch (x) { fail(x); }
+            };
+            
+        if (tok) start();
+        </script>
+    </body>
+</html>

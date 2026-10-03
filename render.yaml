@@ -1,0 +1,36 @@
+# Render Blueprint: New + > Blueprint > pick this repo.
+services:
+  - type: web
+    name: padmavathi-store
+    runtime: docker
+    plan: free              # change to starter to avoid sleeping after 15 min idle
+    region: singapore       # closest Render region to India
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_TYPE
+        value: postgresql
+      - key: DB_HOST
+        fromDatabase: { name: padmavathi-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: padmavathi-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: padmavathi-db, property: database }
+      - key: DB_USERNAME
+        fromDatabase: { name: padmavathi-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: padmavathi-db, property: password }
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_INITIAL_PASSWORD
+        sync: false            # Render asks you for this on first deploy
+      - key: SHOP_WHATSAPP_NUMBER
+        value: "917207071073"  # digits only, with country code
+
+databases:
+  - name: padmavathi-db
+    plan: free              # free DBs expire after 30 days: upgrade before then
+    region: singapore
+    databaseName: padmavathi_store
+    user: padmavathi
